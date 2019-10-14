@@ -1,0 +1,33 @@
+{
+  "wordsToClue": [
+    "teacher",
+    "fence",
+    "plastic",
+    "lock",
+    "palm",
+    "octopus",
+    "europe",
+    "giant",
+    "cap"
+  ],
+  "wordsNotToClue": [
+    "vacuum",
+    "death",
+    "kangaroo",
+    "thumb",
+    "fan",
+    "opera",
+    "spy",
+
+    "crane",
+
+    "china",
+    "lion",
+    "bottle",
+    "helicopter",
+    "bed",
+    "trunk",
+    "pirate",
+    "litter"
+  ]
+}

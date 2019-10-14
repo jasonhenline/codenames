@@ -18,6 +18,9 @@ class DataSet:
 
     @staticmethod
     def loadFromFile(fileName, wordCountLimit=None):
+        """
+        Assumes that fileName has the same format as wiki-news-300d-1M.vec.
+        """
         with open(fileName) as fp:
             headerLine = fp.readline()
             wordCount, featureCount = [int(t) for t in headerLine.split()]
@@ -94,7 +97,7 @@ class DataSet:
 if __name__ == '__main__':
     dataSet = DataSet.loadFromFile(
         'wiki-news-300d-1M.vec', wordCountLimit=500_000)
-    fileName = 'crud.json'
+    fileName = 'example-config.json'
     while True:
         newFileName = input(
             f'Input the name of a config file (or just hit enter to use {fileName})\n')
