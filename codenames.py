@@ -1,3 +1,5 @@
+import itertools
+import json
 import numpy
 
 
@@ -9,6 +11,10 @@ class DataSet:
         self.wordsList = len(self.wordIndices)*[None]
         for word, index in self.wordIndices.items():
             self.wordsList[index] = word
+
+    def getFeatureVector(self, word):
+        index = self.wordIndices[word]
+        return self.featureValues[index]
 
     @staticmethod
     def loadFromFile(fileName, wordCountLimit=None):
@@ -49,6 +55,11 @@ class DataSet:
             return True
         return False
 
+    def getCosineSimilarity(self, word1, word2):
+        v1 = self.getFeatureVector(word1)
+        v2 = self.getFeatureVector(word2)
+        return numpy.dot(v1, v2) / numpy.linalg.norm(v1) / numpy.linalg.norm(v2)
+
     def getWordWithMaximumMinimumSimilarity(self, wordsToClue, wordsNotToClue=[], illegalWords=[]):
         clueSimilarities = []
         for clueWord in wordsToClue:
@@ -77,17 +88,38 @@ class DataSet:
                     continue
                 bestMinimum = minClueSimilarity
                 bestWord = word
-        return bestWord
+        return bestWord, bestMinimum
 
 
 if __name__ == '__main__':
     dataSet = DataSet.loadFromFile(
-        'wiki-news-300d-1M.vec', wordCountLimit=300_000)
+        'wiki-news-300d-1M.vec', wordCountLimit=500_000)
+    fileName = 'crud.json'
     while True:
-        wordsToClue = input(
-            'Enter a space-separated list of words and I will give you the best match\n').split()
-        wordsNotToClue = input(
-            'Enter a space-separated list of words not to be clued\n'
-        ).split()
-        print(dataSet.getWordWithMaximumMinimumSimilarity(
-            wordsToClue, wordsNotToClue=wordsNotToClue))
+        newFileName = input(
+            f'Input the name of a config file (or just hit enter to use {fileName})\n')
+        fileName = newFileName if newFileName else fileName
+        config = json.load(open(fileName))
+        wordsToClue = config['wordsToClue']
+        wordsNotToClue = config['wordsNotToClue']
+        for subsetSize in range(1, len(wordsToClue) + 1):
+            bestClue = None
+            bestSubset = None
+            bestWorstSimilarity = -1
+            for subset in itertools.combinations(wordsToClue, subsetSize):
+                clue, worstSimilarityForClue = dataSet.getWordWithMaximumMinimumSimilarity(
+                    wordsToClue=subset, wordsNotToClue=wordsNotToClue)
+                if clue and worstSimilarityForClue > bestWorstSimilarity:
+                    bestClue = clue
+                    bestSubset = subset
+                    bestWorstSimilarity = worstSimilarityForClue
+            print('SUBSET =', bestSubset, ", BEST_CLUE =", bestClue,
+                  ", WORST_SIMILARITY =", bestWorstSimilarity)
+            print('WORDS TO CLUE:')
+            for word in wordsToClue:
+                similarity = dataSet.getCosineSimilarity(bestClue, word)
+                print("similarity =", similarity, ', word =', word)
+            print('WORDS TO AVOID:')
+            for word in wordsNotToClue:
+                similarity = dataSet.getCosineSimilarity(bestClue, word)
+                print("similarity =", similarity, ', word =', word)
